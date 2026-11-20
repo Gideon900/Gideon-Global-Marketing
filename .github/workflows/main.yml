@@ -1,0 +1,47 @@
+name: Gideon Global Marketing APK Builder
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Find Android Project
+        run: |
+          GRADLEW=$(find . -name gradlew -type f | head -n 1)
+          if [ -z "$GRADLEW" ]; then
+            echo "Gradle wrapper not found"
+            exit 1
+          fi
+          echo "PROJECT_DIR=$(dirname "$GRADLEW")" >> $GITHUB_ENV
+
+      - name: Build APK
+        run: |
+          chmod +x "$PROJECT_DIR/gradlew"
+          cd "$PROJECT_DIR"
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gideon-Global-Marketing-APK
+          path: '**/build/outputs/apk/debug/*.apk'
+          if-no-files-found: error
+          retention-days: 30
