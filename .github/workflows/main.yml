@@ -1,10 +1,10 @@
 name: Gideon Global Marketing APK Builder
-name: Gideon Global Marketing APK Builder
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
@@ -12,85 +12,71 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout project
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Install Gradle 9.3.1
-        uses: gradle/actions/setup-gradle@v6
-        with:
-          gradle-version: '9.3.1'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
 
-      - name: Arrange Android project structure
+      - name: Prepare Android project
         shell: bash
         run: |
-          set -euo pipefail
+          set -e
 
           mkdir -p app gradle
+
           cp build.gradle.kts app/build.gradle.kts
           cp libs.versions.toml gradle/libs.versions.toml
-          cp google-services.json app/google-services.json
 
-          mkdir -p app/src/main/java app/src/test/java
-          mkdir -p app/src/main/res/values app/src/main/res/xml
-          mkdir -p app/src/main/res/drawable app/src/main/res/drawable-nodpi
-          mkdir -p app/src/main/res/font app/src/main/res/mipmap-mdpi
-          mkdir -p app/src/main/res/mipmap-anydpi-v26
-
-          # Place production Kotlin files according to their declared packages.
-          for file in ./*.kt; do
-            [ -f "$file" ] || continue
-            case "$file" in
-              *Test*.kt) continue ;;
-            esac
-            package=$(sed -nE 's/^package[[:space:]]+([^[:space:]]+).*/\1/p' "$file" | head -n1)
-            [ -n "$package" ] || package="com.example"
-            target="app/src/main/java/$(echo "$package" | tr '.' '/')"
-            mkdir -p "$target"
-            cp "$file" "$target/"
-          done
-
-          # The supplied root build script defines the Android application module.
           cat > build.gradle.kts <<'EOF'
           plugins {
           }
           EOF
 
-          cp AndroidManifest.xml app/src/main/AndroidManifest.xml
-          for file in strings.xml colors.xml themes.xml; do
-            [ ! -f "$file" ] || cp "$file" app/src/main/res/values/
-          done
-          for file in backup_rules.xml data_extraction_rules.xml; do
-            [ ! -f "$file" ] || cp "$file" app/src/main/res/xml/
+          mkdir -p app/src/main/java
+          mkdir -p app/src/main/res
+
+          if [ -f google-services.json ]; then
+            cp google-services.json app/google-services.json
+          fi
+
+          if [ -f AndroidManifest.xml ]; then
+            cp AndroidManifest.xml app/src/main/AndroidManifest.xml
+          fi
+
+          for file in *.kt; do
+            [ -f "$file" ] || continue
+            package_name=$(sed -n 's/^[[:space:]]*package[[:space:]]\+\([^[:space:]]*\).*/\1/p' "$file" | head -n 1)
+
+            if [ -n "$package_name" ]; then
+              package_path=$(echo "$package_name" | tr '.' '/')
+              mkdir -p "app/src/main/java/$package_path"
+              cp "$file" "app/src/main/java/$package_path/"
+            else
+              cp "$file" app/src/main/java/
+            fi
           done
 
-          # App images and fonts.
-          for file in img_*.jpg img_*.png; do
-            [ ! -f "$file" ] || cp "$file" app/src/main/res/drawable-nodpi/
-          done
-          for file in *.ttf; do
-            [ ! -f "$file" ] || cp "$file" app/src/main/res/font/
-          done
-
-          # Use the canonical launcher image names only.
-          [ ! -f ic_launcher.png ] || cp ic_launcher.png app/src/main/res/mipmap-mdpi/
-          [ ! -f ic_launcher_round.png ] || cp ic_launcher_round.png app/src/main/res/mipmap-mdpi/
-          for file in ic_launcher.xml ic_launcher_round.xml; do
-            [ ! -f "$file" ] || cp "$file" app/src/main/res/mipmap-anydpi-v26/
-          done
-          for file in ic_launcher_background.xml ic_launcher_foreground.xml; do
-            [ ! -f "$file" ] || cp "$file" app/src/main/res/drawable/
+          for folder in drawable drawable-v24 mipmap mipmap-hdpi mipmap-mdpi mipmap-xhdpi mipmap-xxhdpi mipmap-xxxhdpi values xml font raw; do
+            if [ -d "$folder" ]; then
+              mkdir -p "app/src/main/res/$folder"
+              cp -r "$folder/." "app/src/main/res/$folder/"
+            fi
           done
 
-          echo "Android application structure prepared."
+          if [ -f proguard-rules.pro ]; then
+            cp proguard-rules.pro app/
+          fi
 
-      - name: Build debug APK
+      - name: Build APK
         run: gradle :app:assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
@@ -98,51 +84,5 @@ jobs:
         with:
           name: Gideon-Global-Marketing-APK
           path: app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
-          retention-days: 30
-
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Project
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
-
-      - name: Find Android Project
-        run: |
-          GRADLEW=$(find . -name gradlew -type f | head -n 1)
-          if [ -z "$GRADLEW" ]; then
-            echo "Gradle wrapper not found"
-            exit 1
-          fi
-          echo "PROJECT_DIR=$(dirname "$GRADLEW")" >> $GITHUB_ENV
-
-      - name: Build APK
-        run: |
-          chmod +x "$PROJECT_DIR/gradlew"
-          cd "$PROJECT_DIR"
-          ./gradlew assembleDebug --no-daemon
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: Gideon-Global-Marketing-APK
-          path: '**/build/outputs/apk/debug/*.apk'
           if-no-files-found: error
           retention-days: 30
