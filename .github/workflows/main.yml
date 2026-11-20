@@ -11,10 +11,11 @@ permissions:
 
 jobs:
   build:
+    name: Build Android APK
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout project
+      - name: Download project
         uses: actions/checkout@v4
 
       - name: Set up Java
@@ -23,16 +24,112 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Prepare Android project structure
+        run: |
+          python3 - <<'PY'
+          import os, re, shutil
+          from pathlib import Path
+
+          root = Path(".")
+          app = root / "app"
+          main = app / "src/main"
+          java = main / "java"
+          res = main / "res"
+
+          app.mkdir(exist_ok=True)
+          main.mkdir(parents=True, exist_ok=True)
+
+          # Move the existing Gradle build file into the Android app module.
+          if not (app / "build.gradle.kts").exists() and (root / "build.gradle.kts").exists():
+              shutil.move("build.gradle.kts", app / "build.gradle.kts")
+
+          # Keep the root Gradle build file separate from the app module.
+          if not (root / "build.gradle.kts").exists():
+              (root / "build.gradle.kts").write_text("")
+
+          # Make sure Gradle includes the app module.
+          settings = root / "settings.gradle.kts"
+          if settings.exists():
+              content = settings.read_text()
+              if 'include(":app")' not in content:
+                  content += '\ninclude(":app")\n'
+              settings.write_text(content)
+
+          # Place Kotlin files according to their declared package.
+          for f in list(root.glob("*.kt")):
+              content = f.read_text(errors="ignore")
+              match = re.search(r"^\s*package\s+([\w.]+)", content, re.M)
+              package = match.group(1) if match else "com.example"
+              folder = java / Path(package.replace(".", "/"))
+              folder.mkdir(parents=True, exist_ok=True)
+
+              if "InstrumentedTest" in f.name:
+                  folder = app / "src/androidTest/java" / Path(package.replace(".", "/"))
+              elif f.name.endswith("Test.kt"):
+                  folder = app / "src/test/java" / Path(package.replace(".", "/"))
+
+              folder.mkdir(parents=True, exist_ok=True)
+              shutil.move(str(f), str(folder / f.name))
+
+          # Place the Android manifest.
+          if (root / "AndroidManifest.xml").exists():
+              shutil.move("AndroidManifest.xml", main / "AndroidManifest.xml")
+
+          # Place Firebase configuration and ProGuard rules.
+          for name in ["google-services.json", "proguard-rules.pro"]:
+              if (root / name).exists():
+                  shutil.move(name, app / name)
+
+          # Place Android resource files.
+          resource_map = {
+              "values": ["strings.xml", "colors.xml", "themes.xml", "firebase_applet_config.xml"],
+              "xml": ["backup_rules.xml", "data_extraction_rules.xml"],
+              "drawable": ["ic_launcher_background.xml", "ic_launcher_foreground.xml"],
+              "mipmap-anydpi": ["ic_launcher.xml", "ic_launcher_round.xml"],
+          }
+
+          for folder, names in resource_map.items():
+              destination = res / folder
+              for name in names:
+                  source = root / name
+                  if source.exists():
+                      destination.mkdir(parents=True, exist_ok=True)
+                      shutil.move(str(source), str(destination / name))
+
+          # Place image and font assets.
+          for f in list(root.glob("*.jpg")) + list(root.glob("*.jpeg")) + list(root.glob("*.webp")):
+              destination = res / "drawable-nodpi"
+              destination.mkdir(parents=True, exist_ok=True)
+              shutil.move(str(f), str(destination / f.name))
+
+          for f in list(root.glob("*.ttf")):
+              destination = main / "assets/fonts"
+              destination.mkdir(parents=True, exist_ok=True)
+              shutil.move(str(f), str(destination / f.name))
+
+          # Place launcher PNG images.
+          for f in list(root.glob("ic_launcher*.png")):
+              destination = res / "mipmap-hdpi"
+              destination.mkdir(parents=True, exist_ok=True)
+              shutil.move(str(f), str(destination / f.name))
+
+          print("Android project structure prepared.")
+          PY
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.3.1'
 
       - name: Build APK
-        run: gradle assembleDebug
+        run: gradle :app:assembleDebug --stacktrace
 
-      - name: Upload APK
+      - name: Save APK
         uses: actions/upload-artifact@v4
         with:
           name: Gideon-Global-Marketing-APK
           path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
