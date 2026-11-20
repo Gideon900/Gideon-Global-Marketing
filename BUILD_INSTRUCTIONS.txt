@@ -1,0 +1,9 @@
+GIDEON GLOBAL MARKETING
+
+This ZIP has been rearranged into a standard Android Studio project structure.
+Open this folder in Android Studio (the folder containing settings.gradle.kts).
+Allow Gradle sync to finish, then Build > Build Bundle(s) / APK(s) > Build APK(s).
+The APK is normally at app/build/outputs/apk/debug/app-debug.apk.
+
+This package has not been compiled or tested in this environment. Gradle wrapper JAR/scripts were not present in the supplied ZIP; Android Studio may prompt to create/use Gradle or install a compatible Gradle version.
+Firebase configuration is included. Confirm Firebase Authentication and Firestore are enabled and Firestore rules are deployed before expecting online sign-in/listings/admin approvals to work.

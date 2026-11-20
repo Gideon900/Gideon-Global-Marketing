@@ -1,0 +1,249 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Bootstrapped CEO Administrator: LAGCHU LAGCHU GIDEON (agchu30@gmail.com)
+    // Strictly requires verified email token claim to prevent email spoofing.
+    function isAdmin() {
+      return isSignedIn() &&
+        request.auth.token.email == 'agchu30@gmail.com' &&
+        request.auth.token.email_verified == true;
+    }
+
+    function isValidUserProfile(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+        data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 80 &&
+        data.email is string && data.email.size() >= 5 && data.email.size() <= 120 &&
+        data.phone is string && data.phone.size() <= 40 &&
+        data.role in ['USER', 'OWNER_ADMIN'] &&
+        data.createdAt is timestamp && data.createdAt <= request.time &&
+        data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidListing(data) {
+      return data.sellerUid is string && data.sellerUid.size() >= 1 && data.sellerUid.size() <= 128 &&
+        data.sellerName is string && data.sellerName.size() >= 2 && data.sellerName.size() <= 100 &&
+        data.sellerEmail is string && data.sellerEmail.size() >= 5 && data.sellerEmail.size() <= 120 &&
+        data.sellerPhone is string && data.sellerPhone.size() <= 40 &&
+        data.title is string && data.title.size() >= 3 && data.title.size() <= 140 &&
+        data.description is string && data.description.size() >= 5 && data.description.size() <= 2000 &&
+        data.category in ['LAND', 'ELECTRONICS', 'VEHICLES', 'HOME', 'FASHION', 'AGRICULTURE', 'SERVICES'] &&
+        data.priceXaf is int && data.priceXaf > 0 && data.priceXaf <= 10000000000 &&
+        data.location is string && data.location.size() >= 2 && data.location.size() <= 100 &&
+        data.specs is string && data.specs.size() <= 200 &&
+        data.imageUri is string && data.imageUri.size() <= 500 &&
+        data.isOwnerListing is bool &&
+        data.approvalStatus in ['PENDING_APPROVAL', 'APPROVED', 'REJECTED'] &&
+        data.paymentStatus in ['NOT_REQUIRED', 'PAYMENT_SUBMITTED', 'PAYMENT_VERIFIED', 'REFUNDED'] &&
+        data.paymentMethod is string && data.paymentMethod.size() <= 80 &&
+        data.paymentReference is string && data.paymentReference.size() <= 80 &&
+        data.payerPhone is string && data.payerPhone.size() <= 40 &&
+        data.listingFeeXaf is int && data.listingFeeXaf >= 0 && data.listingFeeXaf <= 1000000 &&
+        data.commissionRatePercent is int && data.commissionRatePercent >= 0 && data.commissionRatePercent <= 50 &&
+        data.adminNotes is string && data.adminNotes.size() <= 500 &&
+        data.createdAt is timestamp && data.createdAt <= request.time &&
+        data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidEscrowTransaction(data) {
+      return data.referenceCode is string && data.referenceCode.size() >= 4 && data.referenceCode.size() <= 40 &&
+        data.listingId is string && data.listingId.size() >= 1 && data.listingId.size() <= 128 &&
+        data.listingTitle is string && data.listingTitle.size() >= 3 && data.listingTitle.size() <= 140 &&
+        data.listingCategory is string && data.listingCategory.size() <= 40 &&
+        data.amountXaf is int && data.amountXaf > 0 &&
+        data.commissionRatePercent is int && data.commissionRatePercent >= 0 && data.commissionRatePercent <= 50 &&
+        data.commissionXaf is int && data.commissionXaf >= 0 && data.commissionXaf <= data.amountXaf &&
+        data.netSellerPayoutXaf is int && data.netSellerPayoutXaf >= 0 && data.netSellerPayoutXaf <= data.amountXaf &&
+        (data.commissionXaf + data.netSellerPayoutXaf) == data.amountXaf &&
+        data.buyerUid is string && data.buyerUid.size() >= 1 && data.buyerUid.size() <= 128 &&
+        data.buyerName is string && data.buyerName.size() >= 2 && data.buyerName.size() <= 100 &&
+        data.buyerEmail is string && data.buyerEmail.size() <= 120 &&
+        data.buyerPhone is string && data.buyerPhone.size() >= 6 && data.buyerPhone.size() <= 40 &&
+        data.sellerUid is string && data.sellerUid.size() >= 1 && data.sellerUid.size() <= 128 &&
+        data.sellerName is string && data.sellerName.size() >= 2 && data.sellerName.size() <= 100 &&
+        data.sellerPhone is string && data.sellerPhone.size() <= 40 &&
+        data.paymentChannel is string && data.paymentChannel.size() >= 3 && data.paymentChannel.size() <= 80 &&
+        data.buyerPaymentRef is string && data.buyerPaymentRef.size() >= 4 && data.buyerPaymentRef.size() <= 80 &&
+        data.escrowStatus in ['ESCROW_PENDING_VERIFY', 'ESCROW_SECURED', 'ITEM_DELIVERED', 'COMPLETED_RELEASED', 'DISPUTED'] &&
+        data.deliveryNote is string && data.deliveryNote.size() <= 500 &&
+        data.createdAt is timestamp && data.createdAt <= request.time &&
+        data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+
+      allow create: if isSignedIn() &&
+        isValidId(userId) &&
+        request.auth.uid == userId &&
+        incoming().userId == request.auth.uid &&
+        incoming().keys().hasAll(['userId', 'fullName', 'email', 'phone', 'role', 'createdAt', 'updatedAt']) &&
+        incoming().keys().hasOnly(['userId', 'fullName', 'email', 'phone', 'role', 'createdAt', 'updatedAt']) &&
+        isValidUserProfile(incoming()) &&
+        (incoming().role == 'USER' || isAdmin());
+
+      allow update: if isSignedIn() &&
+        isValidId(userId) &&
+        (request.auth.uid == userId || isAdmin()) &&
+        incoming().userId == existing().userId &&
+        incoming().createdAt == existing().createdAt &&
+        isValidUserProfile(incoming()) &&
+        (
+          isAdmin() ||
+          (
+            incoming().role == existing().role &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['fullName', 'phone', 'updatedAt'])
+          )
+        );
+
+      allow delete: if isAdmin() && isValidId(userId);
+    }
+
+    match /listings/{listingId} {
+      allow get: if isSignedIn() && isValidId(listingId) && (
+        existing().approvalStatus == 'APPROVED' ||
+        existing().sellerUid == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow list: if isSignedIn() && (
+        resource.data.approvalStatus == 'APPROVED' ||
+        resource.data.sellerUid == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow create: if isSignedIn() &&
+        isValidId(listingId) &&
+        incoming().keys().hasAll([
+          'sellerUid', 'sellerName', 'sellerEmail', 'sellerPhone',
+          'title', 'description', 'category', 'priceXaf', 'location',
+          'specs', 'imageUri', 'isOwnerListing', 'approvalStatus',
+          'paymentStatus', 'paymentMethod', 'paymentReference', 'payerPhone',
+          'listingFeeXaf', 'commissionRatePercent', 'adminNotes',
+          'createdAt', 'updatedAt'
+        ]) &&
+        incoming().keys().hasOnly([
+          'sellerUid', 'sellerName', 'sellerEmail', 'sellerPhone',
+          'title', 'description', 'category', 'priceXaf', 'location',
+          'specs', 'imageUri', 'isOwnerListing', 'approvalStatus',
+          'paymentStatus', 'paymentMethod', 'paymentReference', 'payerPhone',
+          'listingFeeXaf', 'commissionRatePercent', 'adminNotes',
+          'createdAt', 'updatedAt'
+        ]) &&
+        incoming().sellerUid == request.auth.uid &&
+        isValidListing(incoming()) &&
+        (
+          isAdmin() ||
+          (
+            incoming().isOwnerListing == false &&
+            incoming().approvalStatus == 'PENDING_APPROVAL' &&
+            incoming().paymentStatus == 'PAYMENT_SUBMITTED' &&
+            incoming().paymentReference.size() >= 4 &&
+            incoming().commissionRatePercent == 5
+          )
+        );
+
+      allow update: if isSignedIn() &&
+        isValidId(listingId) &&
+        isValidListing(incoming()) &&
+        incoming().sellerUid == existing().sellerUid &&
+        incoming().createdAt == existing().createdAt &&
+        (
+          isAdmin() ||
+          (
+            existing().sellerUid == request.auth.uid &&
+            existing().approvalStatus != 'APPROVED' &&
+            incoming().approvalStatus == existing().approvalStatus &&
+            incoming().paymentStatus == existing().paymentStatus &&
+            incoming().isOwnerListing == existing().isOwnerListing &&
+            incoming().commissionRatePercent == existing().commissionRatePercent &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'title', 'description', 'priceXaf', 'location', 'specs', 'imageUri', 'sellerPhone', 'updatedAt'
+            ])
+          )
+        );
+
+      allow delete: if isAdmin() && isValidId(listingId);
+    }
+
+    match /escrow_transactions/{txId} {
+      allow get: if isSignedIn() && isValidId(txId) && (
+        existing().buyerUid == request.auth.uid ||
+        existing().sellerUid == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow list: if isSignedIn() && (
+        resource.data.buyerUid == request.auth.uid ||
+        resource.data.sellerUid == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow create: if isSignedIn() &&
+        isValidId(txId) &&
+        incoming().keys().hasAll([
+          'referenceCode', 'listingId', 'listingTitle', 'listingCategory',
+          'amountXaf', 'commissionRatePercent', 'commissionXaf', 'netSellerPayoutXaf',
+          'buyerUid', 'buyerName', 'buyerEmail', 'buyerPhone',
+          'sellerUid', 'sellerName', 'sellerPhone',
+          'paymentChannel', 'buyerPaymentRef', 'escrowStatus', 'deliveryNote',
+          'createdAt', 'updatedAt'
+        ]) &&
+        incoming().keys().hasOnly([
+          'referenceCode', 'listingId', 'listingTitle', 'listingCategory',
+          'amountXaf', 'commissionRatePercent', 'commissionXaf', 'netSellerPayoutXaf',
+          'buyerUid', 'buyerName', 'buyerEmail', 'buyerPhone',
+          'sellerUid', 'sellerName', 'sellerPhone',
+          'paymentChannel', 'buyerPaymentRef', 'escrowStatus', 'deliveryNote',
+          'createdAt', 'updatedAt'
+        ]) &&
+        incoming().buyerUid == request.auth.uid &&
+        incoming().escrowStatus == 'ESCROW_PENDING_VERIFY' &&
+        isValidEscrowTransaction(incoming()) &&
+        exists(/databases/$(database)/documents/listings/$(incoming().listingId));
+
+      allow update: if isSignedIn() &&
+        isValidId(txId) &&
+        isValidEscrowTransaction(incoming()) &&
+        incoming().buyerUid == existing().buyerUid &&
+        incoming().sellerUid == existing().sellerUid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().amountXaf == existing().amountXaf &&
+        incoming().commissionXaf == existing().commissionXaf &&
+        incoming().netSellerPayoutXaf == existing().netSellerPayoutXaf &&
+        (
+          isAdmin() ||
+          (
+            existing().buyerUid == request.auth.uid &&
+            existing().escrowStatus == 'ESCROW_SECURED' &&
+            incoming().escrowStatus == 'ITEM_DELIVERED' &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['escrowStatus', 'deliveryNote', 'updatedAt'])
+          )
+        );
+
+      allow delete: if isAdmin() && isValidId(txId);
+    }
+  }
+}

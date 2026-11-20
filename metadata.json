@@ -1,0 +1,6 @@
+{
+  "name": "Gideon Global",
+  "description": "Gideon Global Marketing marketplace for selling land and products with admin advert approval and secure transactions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,230 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Registered buyer, seller, or CEO administrator profile",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID"
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Display name of the user or CEO"
+        },
+        "email": {
+          "type": "string",
+          "description": "Verified account email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Cameroon MTN/Orange contact phone"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["USER", "OWNER_ADMIN"],
+          "description": "Account privilege tier"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())"
+        }
+      },
+      "required": ["userId", "fullName", "email", "phone", "role", "createdAt", "updatedAt"]
+    },
+    "MarketplaceListing": {
+      "title": "MarketplaceListing",
+      "description": "Land or product advert submitted by CEO or partner seller",
+      "type": "object",
+      "properties": {
+        "sellerUid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the seller"
+        },
+        "sellerName": {
+          "type": "string"
+        },
+        "sellerEmail": {
+          "type": "string"
+        },
+        "sellerPhone": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["LAND", "ELECTRONICS", "VEHICLES", "HOME", "FASHION", "AGRICULTURE", "SERVICES"]
+        },
+        "priceXaf": {
+          "type": "integer"
+        },
+        "location": {
+          "type": "string"
+        },
+        "specs": {
+          "type": "string"
+        },
+        "imageUri": {
+          "type": "string"
+        },
+        "isOwnerListing": {
+          "type": "boolean"
+        },
+        "approvalStatus": {
+          "type": "string",
+          "enum": ["PENDING_APPROVAL", "APPROVED", "REJECTED"]
+        },
+        "paymentStatus": {
+          "type": "string",
+          "enum": ["NOT_REQUIRED", "PAYMENT_SUBMITTED", "PAYMENT_VERIFIED", "REFUNDED"]
+        },
+        "paymentMethod": {
+          "type": "string"
+        },
+        "paymentReference": {
+          "type": "string"
+        },
+        "payerPhone": {
+          "type": "string"
+        },
+        "listingFeeXaf": {
+          "type": "integer"
+        },
+        "commissionRatePercent": {
+          "type": "integer",
+          "description": "Partner shop commission percentage (5% for partner sellers, 0% for CEO direct)"
+        },
+        "adminNotes": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())"
+        }
+      },
+      "required": [
+        "sellerUid", "sellerName", "sellerEmail", "sellerPhone",
+        "title", "description", "category", "priceXaf", "location",
+        "specs", "imageUri", "isOwnerListing", "approvalStatus",
+        "paymentStatus", "paymentMethod", "paymentReference", "payerPhone",
+        "listingFeeXaf", "commissionRatePercent", "adminNotes",
+        "createdAt", "updatedAt"
+      ]
+    },
+    "EscrowTransaction": {
+      "title": "EscrowTransaction",
+      "description": "Protected buyer escrow purchase with partner shop commission breakdown",
+      "type": "object",
+      "properties": {
+        "referenceCode": {
+          "type": "string"
+        },
+        "listingId": {
+          "type": "string"
+        },
+        "listingTitle": {
+          "type": "string"
+        },
+        "listingCategory": {
+          "type": "string"
+        },
+        "amountXaf": {
+          "type": "integer"
+        },
+        "commissionRatePercent": {
+          "type": "integer"
+        },
+        "commissionXaf": {
+          "type": "integer"
+        },
+        "netSellerPayoutXaf": {
+          "type": "integer"
+        },
+        "buyerUid": {
+          "type": "string"
+        },
+        "buyerName": {
+          "type": "string"
+        },
+        "buyerEmail": {
+          "type": "string"
+        },
+        "buyerPhone": {
+          "type": "string"
+        },
+        "sellerUid": {
+          "type": "string"
+        },
+        "sellerName": {
+          "type": "string"
+        },
+        "sellerPhone": {
+          "type": "string"
+        },
+        "paymentChannel": {
+          "type": "string"
+        },
+        "buyerPaymentRef": {
+          "type": "string"
+        },
+        "escrowStatus": {
+          "type": "string",
+          "enum": ["ESCROW_PENDING_VERIFY", "ESCROW_SECURED", "ITEM_DELIVERED", "COMPLETED_RELEASED", "DISPUTED"]
+        },
+        "deliveryNote": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())"
+        }
+      },
+      "required": [
+        "referenceCode", "listingId", "listingTitle", "listingCategory",
+        "amountXaf", "commissionRatePercent", "commissionXaf", "netSellerPayoutXaf",
+        "buyerUid", "buyerName", "buyerEmail", "buyerPhone",
+        "sellerUid", "sellerName", "sellerPhone",
+        "paymentChannel", "buyerPaymentRef", "escrowStatus", "deliveryNote",
+        "createdAt", "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profiles isolated by UID with CEO admin access"
+    },
+    "/listings/{listingId}": {
+      "schema": { "$ref": "#/entities/MarketplaceListing" },
+      "description": "Approved marketplace listings, seller submissions, and CEO approval queue"
+    },
+    "/escrow_transactions/{txId}": {
+      "schema": { "$ref": "#/entities/EscrowTransaction" },
+      "description": "Escrow orders with partner shop commissions"
+    }
+  }
+}
