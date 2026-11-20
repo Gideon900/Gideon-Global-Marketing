@@ -30,8 +30,6 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
-        with:
-          packages: ''
 
       - name: Install Android SDK packages
         run: |
@@ -42,50 +40,50 @@ jobs:
         run: |
           mkdir -p app/src/main/java
           mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/res/xml
+          mkdir -p app/src/main/res/drawable
+          mkdir -p app/src/main/res/mipmap-hdpi
           mkdir -p app/src/main/assets
 
-          if [ -f build.gradle.kts ]; then
-            cp build.gradle.kts app/build.gradle.kts
-          fi
-
+          cp build.gradle.kts app/build.gradle.kts
           echo "plugins {}" > build.gradle.kts
 
-          if [ -f AndroidManifest.xml ]; then
-            cp AndroidManifest.xml app/src/main/AndroidManifest.xml
-          fi
+          cp AndroidManifest.xml app/src/main/AndroidManifest.xml
 
           for file in *.kt; do
-            if [ -f "$file" ]; then
-              cp "$file" app/src/main/java/
-            fi
+            [ -f "$file" ] && cp "$file" app/src/main/java/
           done
 
-          if [ -d res ]; then
-            cp -R res/. app/src/main/res/
-          fi
+          cp strings.xml app/src/main/res/values/
+          cp colors.xml app/src/main/res/values/
+          cp themes.xml app/src/main/res/values/
 
-          for file in strings.xml colors.xml themes.xml; do
-            if [ -f "$file" ]; then
-              cp "$file" app/src/main/res/values/
-            fi
-          done
+          cp backup_rules.xml app/src/main/res/xml/
+          cp data_extraction_rules.xml app/src/main/res/xml/
 
-          if [ -f google-services.json ]; then
-            cp google-services.json app/
-          fi
+          cp ic_launcher_background.xml app/src/main/res/drawable/
+          cp ic_launcher_foreground.xml app/src/main/res/drawable/
 
-          if [ -f libs.versions.toml ]; then
-            mkdir -p gradle
-            cp libs.versions.toml gradle/
-          fi
+          cp ic_launcher.xml app/src/main/res/mipmap-hdpi/
+          cp ic_launcher_round.xml app/src/main/res/mipmap-hdpi/
 
-          if [ -d assets ]; then
-            cp -R assets/. app/src/main/assets/
-          fi
+          cp ic_launcher.png app/src/main/res/mipmap-hdpi/
+          cp ic_launcher_round.png app/src/main/res/mipmap-hdpi/
 
-          if [ -d fonts ]; then
-            cp -R fonts/. app/src/main/assets/
-          fi
+          cp google-services.json app/
+
+          mkdir -p gradle
+          cp libs.versions.toml gradle/
+
+          keytool -genkeypair -v \
+            -keystore debug.keystore \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
 
       - name: Build Gideon Global Marketing APK
         run: gradle --no-daemon :app:assembleDebug
