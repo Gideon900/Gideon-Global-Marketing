@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Gideon Global</string>
+    <string name="brand_full_name">Gideon Global Marketing</string>
+    <string name="ceo_name">LAGCHU LAGCHU GIDEON</string>
+    <string name="ceo_title_footer">CEO: LAGCHU LAGCHU GIDEON</string>
+    <string name="brand_tagline">Verified Land, Real Estate &amp; Global Commerce</string>
+    <string name="owner_email">agchu30@gmail.com</string>
+    <string name="owner_phone_primary">+237676831188</string>
+    <string name="owner_phone_secondary">+237683480584</string>
+    <string name="nav_explore">Explore</string>
+    <string name="nav_sell">Sell</string>
+    <string name="nav_escrow">Activity</string>
+    <string name="nav_account">Account</string>
+    <string name="local_storage_notice">Connected to Firebase Authentication (Google Sign-In) &amp; Cloud Firestore. All seller registrations, CEO approvals, partner commissions, and escrow orders sync securely in real time.</string>
+</resources>
