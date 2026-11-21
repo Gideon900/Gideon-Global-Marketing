@@ -149,12 +149,36 @@ fun onGoogleSignInClicked(
         return
     }
 
+    // Prefer the dedicated Sign in with Google button flow. If the provider cannot
+    // complete that flow on this device, retry with the standard Google ID option.
     val signInOption = GetSignInWithGoogleOption.Builder(serverClientId = clientId).build()
-    val request = GetCredentialRequest.Builder().addCredentialOption(signInOption).build()
+    val signInRequest = GetCredentialRequest.Builder()
+        .addCredentialOption(signInOption)
+        .build()
+
+    val fallbackOption = GetGoogleIdOption.Builder()
+        .setFilterByAuthorizedAccounts(false)
+        .setServerClientId(clientId)
+        .setAutoSelectEnabled(false)
+        .build()
+    val fallbackRequest = GetCredentialRequest.Builder()
+        .addCredentialOption(fallbackOption)
+        .build()
 
     scope.launch {
         try {
-            val result = credentialManager.getCredential(context as Activity, request)
+            val activity = context as? Activity
+                ?: throw IllegalStateException("Google Sign-In requires an active Android screen")
+
+            val result = try {
+                credentialManager.getCredential(activity, signInRequest)
+            } catch (cancelled: GetCredentialCancellationException) {
+                throw cancelled
+            } catch (firstError: Exception) {
+                Log.w("Auth", "Dedicated Google sign-in failed; trying account picker fallback", firstError)
+                credentialManager.getCredential(activity, fallbackRequest)
+            }
+
             val credential = result.credential
             if (credential is CustomCredential && credential.type == TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
                 val googleIdToken = GoogleIdTokenCredential.createFrom(credential.data).idToken
@@ -162,14 +186,14 @@ fun onGoogleSignInClicked(
                 Firebase.auth.signInWithCredential(authCredential).await()
                 onAuthSuccess()
             } else {
-                onAuthError("Unexpected credential type")
+                onAuthError("Google returned an unsupported sign-in credential. Please try again.")
             }
         } catch (e: GetCredentialCancellationException) {
-            Log.w("Auth", "Google Sign-In flow cancelled or dismissed: ${e.message}", e)
+            Log.w("Auth", "Google Sign-In was cancelled or dismissed", e)
             onAuthCancelled()
         } catch (e: Exception) {
             Log.e("Auth", "Google Sign-In failed", e)
-            onAuthError(e.localizedMessage ?: "Sign in failed")
+            onAuthError(e.localizedMessage ?: "Google sign-in failed. Check your internet connection and Firebase Google provider settings.")
         }
     }
 }
