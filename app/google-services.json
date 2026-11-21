@@ -51,6 +51,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "969614876632-ce965e5eljtahi8s4qbvsv6ngbelais3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.gideonglobal.marketing",
+            "certificate_hash": "5b3dea15866930bec907865961a83b425d7ef6b8"
+          }
+        },
+        {
           "client_id": "969614876632-juub1tk5dn5kmo1umgmo3nubv0hej575.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
