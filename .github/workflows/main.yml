@@ -25,7 +25,9 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Print Android signing fingerprints
-        run: gradle :app:signingReport
+        run: |
+          gradle :app:signingReport | tee signing-report.txt
+          cat signing-report.txt >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build Debug APK
         run: gradle assembleDebug
