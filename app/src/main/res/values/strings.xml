@@ -12,4 +12,5 @@
     <string name="nav_escrow">Activity</string>
     <string name="nav_account">Account</string>
     <string name="local_storage_notice">Connected to Firebase Authentication (Google Sign-In) &amp; Cloud Firestore. All seller registrations, CEO approvals, partner commissions, and escrow orders sync securely in real time.</string>
+    <string name="firestore_database_id">ai-studio-android-gideongl-d408afe8-9d94-4fa7-8cea-713bd69e0adf</string>
 </resources>
