@@ -80,6 +80,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
+private fun Context.findActivity(): Activity? {
+    var current: Context? = this
+    while (current is android.content.ContextWrapper) {
+        if (current is Activity) return current
+        current = current.baseContext
+    }
+    return current as? Activity
+}
+
 internal fun FirebaseAuth.authStateFlow(): Flow<FirebaseUser?> = callbackFlow {
     val listener = FirebaseAuth.AuthStateListener { auth ->
         trySend(auth.currentUser)
@@ -167,8 +176,8 @@ fun onGoogleSignInClicked(
 
     scope.launch {
         try {
-            val activity = context as? Activity
-                ?: throw IllegalStateException("Google Sign-In requires an active Android screen")
+            val activity = context.findActivity()
+                ?: throw IllegalStateException("Google Sign-In could not find the active Android screen. Please close and reopen the app.")
 
             val result = try {
                 credentialManager.getCredential(activity, signInRequest)
