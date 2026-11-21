@@ -1,9 +1,15 @@
-GIDEON GLOBAL MARKETING
+GIDEON GLOBAL MARKETING - ANDROID PROJECT
 
-This ZIP has been rearranged into a standard Android Studio project structure.
-Open this folder in Android Studio (the folder containing settings.gradle.kts).
-Allow Gradle sync to finish, then Build > Build Bundle(s) / APK(s) > Build APK(s).
-The APK is normally at app/build/outputs/apk/debug/app-debug.apk.
+This is arranged as a standard Android Studio Gradle project. Open the folder containing settings.gradle.kts.
+The Android application module is app/.
 
-This package has not been compiled or tested in this environment. Gradle wrapper JAR/scripts were not present in the supplied ZIP; Android Studio may prompt to create/use Gradle or install a compatible Gradle version.
-Firebase configuration is included. Confirm Firebase Authentication and Firestore are enabled and Firestore rules are deployed before expecting online sign-in/listings/admin approvals to work.
+To build a debug APK in Android Studio: Build > Build Bundle(s) / APK(s) > Build APK(s).
+Expected output: app/build/outputs/apk/debug/app-debug.apk.
+
+The GitHub Actions workflow at .github/workflows/main.yml builds the debug APK when code is pushed to main or when workflow_dispatch is run. Download the artifact named Gideon-Global-Marketing-APK from the completed Actions run.
+
+Firebase configuration is included in app/google-services.json. Firebase Authentication and Cloud Firestore must be enabled in the matching Firebase project, and Firestore security rules must be deployed for online functions to work.
+
+The supplied project did not include the Gradle wrapper scripts/JAR. GitHub Actions installs Gradle 9.3.1 directly. Android Studio may offer to generate a wrapper on first open.
+
+This project has been structurally repaired but has not yet been successfully compiled or runtime-tested in this environment.
