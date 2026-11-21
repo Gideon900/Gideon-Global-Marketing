@@ -24,6 +24,9 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Print Android signing fingerprints
+        run: gradle :app:signingReport
+
       - name: Build Debug APK
         run: gradle assembleDebug
 
