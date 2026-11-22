@@ -1,0 +1,1 @@
+Build requested for Gideon Global Marketing. The Android applicationId is com.gideonglobal.marketing. Please use the existing GitHub Actions APK builder workflow.
