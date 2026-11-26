@@ -24,6 +24,14 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      # Keep the debug signing key stable across GitHub-hosted runners.
+      # Without this cache, each build gets a new certificate and Google Sign-In rejects it.
+      - name: Restore stable Android debug signing key
+        uses: actions/cache@v4
+        with:
+          path: ~/.config/.android/debug.keystore
+          key: gideon-global-marketing-debug-keystore-v1
+
       - name: Build Debug APK
         run: gradle assembleDebug
 
