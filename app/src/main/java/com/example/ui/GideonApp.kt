@@ -16,12 +16,14 @@ import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Storefront
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.Badge
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.credentials.CredentialManager
@@ -223,6 +226,23 @@ fun GideonApp(
         Scaffold(
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             contentWindowInsets = WindowInsets.safeDrawing,
+            floatingActionButton = {
+                FloatingActionButton(
+                    onClick = {
+                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_SUBJECT, "Gideon Global Marketing")
+                            putExtra(
+                                Intent.EXTRA_TEXT,
+                                "Discover Gideon Global Marketing — browse products and property listings, or advertise your business.\n\nGet the app project and latest download here: https://github.com/Gideon900/Gideon-Global-Marketing"
+                            )
+                        }
+                        context.startActivity(Intent.createChooser(shareIntent, "Share Gideon Global Marketing"))
+                    }
+                ) {
+                    Icon(Icons.Filled.Share, contentDescription = "Share app")
+                }
+            },
             bottomBar = {
                 if (!useRail) {
                     NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
