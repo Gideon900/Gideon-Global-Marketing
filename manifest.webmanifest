@@ -1,0 +1,11 @@
+{
+  "name":"Gideon Global Marketing",
+  "short_name":"Gideon Marketing",
+  "description":"Discover land, products and services and promote your business in Cameroon.",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#f5f7f4",
+  "theme_color":"#073b2b",
+  "icons":[{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
