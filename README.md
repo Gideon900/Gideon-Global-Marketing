@@ -1,22 +1,30 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Gideon Global Marketing
 
-# Run and deploy your AI Studio app
+One connected Cameroon marketplace for land and property, products, services, and business adverts.
 
-This contains everything you need to run your app locally.
+## Website
+GitHub Pages: https://gideon900.github.io/Gideon-Global-Marketing/
 
-View your app in AI Studio: https://ai.studio/apps/d408afe8-9d94-4fa7-8cea-713bd69e0adf
+The website uses the existing Supabase project for approved listings, advert submissions, image uploads, and administrator review. The Android wrapper loads this same website, so both share the same listings and approval process.
 
-## Run Locally
+## Android APK
+The Android WebView project is in `android-marketplace/`. It opens the same live website and supports image selection for advert submissions.
 
-**Prerequisites:**  [Android Studio](https://developer.android.com/studio)
+To build an APK:
+1. Open the **Actions** tab.
+2. Select **Gideon Global Marketing APK Builder**.
+3. Select **Run workflow**.
+4. Wait for the workflow to finish successfully.
+5. Open the completed run and download the artifact named **Gideon-Global-Marketing-APK**.
 
+The generated APK is a debug build for direct installation/testing. A signed Google Play release is a separate publishing step.
 
-1. Open Android Studio
-2. Select **Open** and choose the directory containing this project
-3. Allow Android Studio to fix any incompatibilities as it imports the project.
-4. Create a file named `.env` in the project directory and set `GEMINI_API_KEY` in that file to your Gemini API key (see `.env.example` for an example)
-5. Remove this line from the app's `build.gradle.kts` file: `signingConfig = signingConfigs.getByName("debugConfig")`
-6. Run the app on an emulator or physical device
-7. If you have already published your app in AI Studio, please [request upload key reset](https://support.google.com/googleplay/android-developer/answer/9842756#zippy=%2Crequest-an-upload-key-reset) in Google Play Console.
+## Website installation
+On Android Chrome, open the website and choose **Install app** or **Add to Home screen** from the browser menu when available.
+
+## Business contact
+- WhatsApp / MTN Mobile Money: +237 676 831 188
+- Orange Money: +237 683 480 584
+- Email: agchu30@gmail.com
+
+Founder & CEO: LAGCHU LAGCHU III GIDEON
